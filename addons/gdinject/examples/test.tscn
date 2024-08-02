@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c4pl760ru4gxf"]
+
+[ext_resource type="Script" path="res://addons/gdinject/examples/test.gd" id="1_7dy4v"]
+
+[node name="Test" type="Node"]
+script = ExtResource("1_7dy4v")
