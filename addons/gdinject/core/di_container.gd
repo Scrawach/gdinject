@@ -1,14 +1,14 @@
 class_name DIContainer
 extends RefCounted
 
-var instances: Dictionary
+var services: DIServiceLocator
 
-func _init(instances: Dictionary) -> void:
-	self.instances = instances
+func _init(services: DIServiceLocator) -> void:
+	self.services = services
 
 func resolve(key) -> Variant:
-	if instances.has(key):
-		return instances[key]
+	if services.has(key):
+		return services.find(key)
 	
 	push_error("DIContainer: can't resolve key %s" % key)
 	return null
