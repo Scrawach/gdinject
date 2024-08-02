@@ -5,7 +5,7 @@ func _ready() -> void:
 	services.add(ILogger, ConsoleLogger.new())
 	
 	var services_id: int = services.get_instance_id()
-	var source_code: String = SOURCE_CODES % ["DefaultCommand", services_id]
+	var source_code: String = SOURCE_CODES % ["DefaultCommand", services_id, "arg0 = __injector.find(ILogger)", "arg0"]
 	
 	print(source_code)
 	
@@ -23,6 +23,6 @@ extends %s
 var __services_id: int = %s
 var __injector := DIInjector.new(__services_id)
 
-func _init(arg0 = __injector.find(ILogger)) -> void:
-	super(arg0)
+func _init(%s) -> void:
+	super(%s)
 """
