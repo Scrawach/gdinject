@@ -56,6 +56,9 @@ static func create_init_arguments_string(argument_names: PackedStringArray) -> S
 	var base_argument_name: String = "arg"
 	
 	for index in argument_names.size():
+		if index > 0:
+			result += ", "
+		
 		var base = base_argument_name + str(index)
 		var argument_name: String = argument_names[index]
 		var content = ARGUMENT_INJECTOR % [base, argument_name]
@@ -67,6 +70,8 @@ static func get_arguments(count: int) -> String:
 	var base_argument_name: String = "arg"
 	var result: String = ""
 	for index in range(count):
+		if index > 0:
+			result += ", "
 		result += base_argument_name + str(index)
 	return result
 
