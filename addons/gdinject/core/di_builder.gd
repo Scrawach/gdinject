@@ -36,12 +36,12 @@ func build() -> DIContainer:
 		var instance: Variant
 		
 		if argument_count > 0:
-			var args: String = create_init_arguments_string(init_method.argument_names)
-			var source_code: String = SOURCE_CODES % [init_method.implementation_name, services_id, args, get_arguments(argument_count)]
+			var injections: String = create_parent_init_arguments_types(init_method.argument_names)
+			var source_code: String = SOURCE_CODES % [init_method.implementation_name, injections]
 			var script := GDScript.new()
 			script.source_code = source_code
 			script.reload()
-			instance = script.new()
+			instance = script.new(services)
 		else:
 			instance = init_method.base_script.new()
 			
@@ -66,6 +66,23 @@ static func create_init_arguments_string(argument_names: PackedStringArray) -> S
 	
 	return result
 
+static func create_parent_init_arguments_types(type_names: PackedStringArray) -> String:
+	const ARGUMENT_INJECTOR: String = "services.find(%s)"
+	
+	var result: String = ""
+	var base_argument_name: String = "arg"
+	
+	for index in type_names.size():
+		if index > 0:
+			result += ", "
+		
+		var argument_name: String = type_names[index]
+		var content = ARGUMENT_INJECTOR % argument_name
+		result += content
+	
+	print(result)
+	return result
+
 static func get_arguments(count: int) -> String:
 	var base_argument_name: String = "arg"
 	var result: String = ""
@@ -78,10 +95,7 @@ static func get_arguments(count: int) -> String:
 const SOURCE_CODES: String = """
 extends %s
 
-var __services_id: int = %s
-var __injector := DIInjector.new(__services_id)
-
-func _init(%s) -> void:
+func _init(services: DIServiceLocator) -> void:
 	super(%s)
 """
 
