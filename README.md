@@ -44,3 +44,5 @@ extends DefaultCommand
 func _init(services: DIServiceLocator) -> void:
 	super(services.find(ILogger))
 ```
+
+Such scripts are created dynamically during dependency resolving. So it has a performance overhead.
