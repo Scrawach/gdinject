@@ -17,5 +17,5 @@ func set_arguments_names(names: PackedStringArray) -> void:
 	argument_names = names
 
 func _to_string() -> String:
-	return "Contract: %s; Implementation: %s; Arguments: %s; Base Script: %s" % [
-		contract_name, implementation_name, argument_names, base_script]
+	return "Contract: %s (%s); Implementation: %s; Arguments: %s; Base Script: %s" % [
+		contract_name, contract_type, implementation_name, argument_names, base_script]

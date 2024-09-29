@@ -32,56 +32,25 @@ func build() -> DIContainer:
 	
 	for argument in arguments.keys():
 		var init_method = arguments[argument] as DIInitMethod
+		print(init_method)
 		var argument_count: int = init_method.argument_names.size()
 		var instance: Variant
 		
 		if argument_count > 0:
-			var injections: String = create_parent_init_arguments_types(init_method.argument_names)
-			var source_code: String = SOURCE_CODES % [init_method.implementation_name, injections]
-			var script := GDScript.new()
-			script.source_code = source_code
-			script.reload()
-			instance = script.new(services)
+			var dependencies: Array = resolve_dependencies(init_method.argument_names, services)
+			instance = init_method.base_script.new.bindv(dependencies).call()
 		else:
 			instance = init_method.base_script.new()
 			
-		services.add(init_method.contract_type, instance)
+		services.add(init_method.contract_name, instance)
 	
 	return DIContainer.new(services)
 
-static func create_init_arguments_string(argument_names: PackedStringArray) -> String:
-	const ARGUMENT_INJECTOR: String = "%s = __injector.find(%s)"
-	
-	var result: String = ""
-	var base_argument_name: String = "arg"
-	
-	for index in argument_names.size():
-		if index > 0:
-			result += ", "
-		
-		var base = base_argument_name + str(index)
-		var argument_name: String = argument_names[index]
-		var content = ARGUMENT_INJECTOR % [base, argument_name]
-		result += content
-	
-	return result
-
-static func create_parent_init_arguments_types(type_names: PackedStringArray) -> String:
-	const ARGUMENT_INJECTOR: String = "services.find(%s)"
-	
-	var result: String = ""
-	var base_argument_name: String = "arg"
-	
-	for index in type_names.size():
-		if index > 0:
-			result += ", "
-		
-		var argument_name: String = type_names[index]
-		var content = ARGUMENT_INJECTOR % argument_name
-		result += content
-	
-	print(result)
-	return result
+static func resolve_dependencies(type_names: PackedStringArray, services: DIServiceLocator) -> Array:
+	var dependencies: Array
+	for type_name in type_names:
+		dependencies.append(services.find(type_name))
+	return dependencies
 
 static func get_arguments(count: int) -> String:
 	var base_argument_name: String = "arg"
@@ -91,13 +60,6 @@ static func get_arguments(count: int) -> String:
 			result += ", "
 		result += base_argument_name + str(index)
 	return result
-
-const SOURCE_CODES: String = """
-extends %s
-
-func _init(services: DIServiceLocator) -> void:
-	super(%s)
-"""
 
 static func get_class_name(type: Resource) -> String:
 	const CLASS_NAME: String = "class_name"
@@ -114,4 +76,3 @@ static func get_class_name(type: Resource) -> String:
 			return line.split(CLASS_NAME_DELIMITER)[CLASS_NAME_CONTENT_INDEX]
 	
 	return script.get_instance_base_type()
-
