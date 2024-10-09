@@ -27,24 +27,27 @@ static func create_init_method(binding: DIBinding) -> DIInitMethod:
 	var implementation_name: String = binding.implementation.get_global_name()
 	var init_method := DIInitMethod.new(contract_name, implementation_name, to_load)
 	init_method.contract_type = binding.contract
-		
-	for method in to_load.get_script_method_list():
-		if method.name == "_init":
+	init_method.argument_types = get_argument_types(to_load, "_init")
+	return init_method
+
+static func get_argument_types(script: Script, method_name: String) ->PackedStringArray:
+	for method in script.get_script_method_list():
+		if method.name == method_name:
 			var init_arguments: PackedStringArray
 			for arg in method.args:
 				init_arguments.append(arg.class_name)
-			init_method.set_arguments_names(init_arguments)
-	return init_method
+			return init_arguments
+	return PackedStringArray()
 
 static func create_service_locator(methods: Array[DIInitMethod]) -> DIServiceLocator:
 	var services := DIServiceLocator.new()
 	
 	for init_method in methods:
-		var argument_count: int = init_method.argument_names.size()
+		var argument_count: int = init_method.argument_types.size()
 		var instance: Variant
 		
 		if argument_count > 0:
-			var dependencies: Array = resolve_dependencies(init_method.argument_names, services)
+			var dependencies: Array = resolve_dependencies(init_method.argument_types, services)
 			instance = init_method.base_script.new.bindv(dependencies).call()
 		else:
 			instance = init_method.base_script.new()
