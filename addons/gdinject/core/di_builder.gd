@@ -9,30 +9,37 @@ func bind(contract: GDScript) -> DIBinding:
 	return binding
 
 func build() -> DIContainer:
-	var instances := Dictionary()
-	var arguments := Dictionary()
+	var init_methods: Array[DIInitMethod] = get_init_data(bindings)
+	var services: DIServiceLocator = create_service_locator(init_methods)
+	return DIContainer.new(services)
+
+static func get_init_data(bindings: Array[DIBinding]) -> Array[DIInitMethod]:
+	var init_methods: Array[DIInitMethod]
 	
 	for binding in bindings:
-		var to_load: Script = load(binding.implementation.resource_path)
-		var contract_name: String = binding.contract.get_global_name()
-		var implementation_name: String = binding.implementation.get_global_name()
-		var init_method := DIInitMethod.new(contract_name, implementation_name, to_load)
-		init_method.contract_type = binding.contract
-		arguments[contract_name] = init_method
+		init_methods.append(create_init_method(binding))
+	
+	return init_methods
+
+static func create_init_method(binding: DIBinding) -> DIInitMethod:
+	var to_load: Script = load(binding.implementation.resource_path)
+	var contract_name: String = binding.contract.get_global_name()
+	var implementation_name: String = binding.implementation.get_global_name()
+	var init_method := DIInitMethod.new(contract_name, implementation_name, to_load)
+	init_method.contract_type = binding.contract
 		
-		for method in to_load.get_script_method_list():
-			if method.name == "_init":
-				var init_arguments: PackedStringArray
-				for arg in method.args:
-					init_arguments.append(arg.class_name)
-				init_method.set_arguments_names(init_arguments)
-	
+	for method in to_load.get_script_method_list():
+		if method.name == "_init":
+			var init_arguments: PackedStringArray
+			for arg in method.args:
+				init_arguments.append(arg.class_name)
+			init_method.set_arguments_names(init_arguments)
+	return init_method
+
+static func create_service_locator(methods: Array[DIInitMethod]) -> DIServiceLocator:
 	var services := DIServiceLocator.new()
-	var services_id: int = services.get_instance_id()
 	
-	for argument in arguments.keys():
-		var init_method = arguments[argument] as DIInitMethod
-		print(init_method)
+	for init_method in methods:
 		var argument_count: int = init_method.argument_names.size()
 		var instance: Variant
 		
@@ -44,7 +51,7 @@ func build() -> DIContainer:
 			
 		services.add(init_method.contract_name, instance)
 	
-	return DIContainer.new(services)
+	return services
 
 static func resolve_dependencies(type_names: PackedStringArray, services: DIServiceLocator) -> Array:
 	var dependencies: Array
