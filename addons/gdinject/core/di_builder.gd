@@ -3,7 +3,7 @@ extends RefCounted
 
 var bindings: Array[DIBinding]
 
-func bind(contract) -> DIBinding:
+func bind(contract: GDScript) -> DIBinding:
 	var binding := DIBinding.new(contract)
 	bindings.append(binding)
 	return binding
@@ -14,8 +14,8 @@ func build() -> DIContainer:
 	
 	for binding in bindings:
 		var to_load: Script = load(binding.implementation.resource_path)
-		var contract_name: String = get_class_name(binding.contract)
-		var implementation_name: String = get_class_name(binding.implementation)
+		var contract_name: String = binding.contract.get_global_name()
+		var implementation_name: String = binding.implementation.get_global_name()
 		var init_method := DIInitMethod.new(contract_name, implementation_name, to_load)
 		init_method.contract_type = binding.contract
 		arguments[contract_name] = init_method
@@ -60,19 +60,3 @@ static func get_arguments(count: int) -> String:
 			result += ", "
 		result += base_argument_name + str(index)
 	return result
-
-static func get_class_name(type: Resource) -> String:
-	const CLASS_NAME: String = "class_name"
-	const CLASS_NAME_DELIMITER: String = " "
-	const CLASS_NAME_CONTENT_INDEX: int = 1
-	
-	var script_path: String = type.resource_path
-	var script: Script = load(script_path) as Script
-	var source: String = script.source_code
-	var content: PackedStringArray = source.split('\n')
-	
-	for line in content:
-		if line.begins_with(CLASS_NAME):
-			return line.split(CLASS_NAME_DELIMITER)[CLASS_NAME_CONTENT_INDEX]
-	
-	return script.get_instance_base_type()

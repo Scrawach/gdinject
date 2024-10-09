@@ -11,5 +11,5 @@ func _ready() -> void:
 	builder.bind(ICommand).to(DefaultCommand).as_single()
 	
 	var container: DIContainer = builder.build()
-	var command: ICommand = container.resolve("ICommand") as ICommand
+	var command: ICommand = container.resolve(ICommand) as ICommand
 	command.execute()

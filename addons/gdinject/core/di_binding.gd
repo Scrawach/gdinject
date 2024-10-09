@@ -1,15 +1,15 @@
 class_name DIBinding
 extends RefCounted
 
-var contract
-var implementation
+var contract: GDScript
+var implementation: GDScript
 var is_single: bool
 
-func _init(type) -> void:
+func _init(type: GDScript) -> void:
 	contract = type
 	is_single = true
 
-func to(target) -> DIBinding:
+func to(target: GDScript) -> DIBinding:
 	implementation = target
 	return self
 
